@@ -55,11 +55,27 @@
 (deftest holds-on-finalized-manuscript-claim-in-draft
   (let [st (fresh-store)
         graph (actor/build-graph {:store st})
-        ;; manuscript proposals claiming finalization are hard-rejected
-        request {:project-id "proj-1" :op :draft-manuscript :stake :high}
-        proposal {:op :draft-manuscript :effect :propose :stake :high :confidence 0.8 :finalized? true}
+        ;; manuscript proposals claiming finalization are hard-rejected —
+        ;; the request itself must declare :finalized? true so the (mock)
+        ;; advisor actually carries it into the proposal the governor sees.
+        request {:project-id "proj-1" :op :draft-manuscript :stake :high :finalized? true}
         result (actor/run-request! graph request {} "thread-5")]
     (is (= :done (:status result)))
     (is (nil? (get-in result [:state :record])))
     (is (empty? (store/records-of st "proj-1")))
     (is (= :hold (:disposition (:state result))))))
+
+(deftest interrupts-on-novel-manuscript-claim-then-commits-on-approval
+  (let [st (fresh-store)
+        graph (actor/build-graph {:store st})
+        ;; a draft-manuscript proposal claiming a novel result always
+        ;; escalates (governor invariant) — same advisor propagation path
+        ;; as the finalized-claim case above, exercised end to end here.
+        request {:project-id "proj-1" :op :draft-manuscript :stake :high :novel? true}
+        interrupted (actor/run-request! graph request {} "thread-6")]
+    (is (= :interrupted (:status interrupted)))
+    (is (empty? (store/records-of st "proj-1")))
+    (let [resumed (actor/approve! graph "thread-6")]
+      (is (= :done (:status resumed)))
+      (is (some? (get-in resumed [:state :record])))
+      (is (= 1 (count (store/records-of st "proj-1")))))))

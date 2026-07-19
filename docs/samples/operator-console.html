@@ -1,0 +1,68 @@
+<html><head><meta charset="utf-8"><title>cloud-itonami-isco-2111 &middot; physics &amp; astronomy research support</title><style>
+table { width: 100%; border-collapse: collapse; font-size: 14px; }
+.ok { color: #137a3f; }
+body { font-family: system-ui,-apple-system,sans-serif; margin: 0; color: #1a1a1a; background: #fafafa; }
+header.bar { display: flex; align-items: center; gap: 12px; padding: 12px 20px; background: #fff; border-bottom: 1px solid #e5e5e5; }
+th, td { text-align: left; padding: 8px 10px; border-bottom: 1px solid #f0f0f0; }
+h2 { margin-top: 0; font-size: 15px; }
+.warn { color: #b25c00; background: #fff8e1; padding: 2px 6px; border-radius: 4px; }
+main { max-width: 980px; margin: 24px auto; padding: 0 20px; }
+header.bar h1 { font-size: 18px; margin: 0; font-weight: 600; }
+.muted { color: #888; font-size: 13px; }
+.critical { color: #fff; background: #b3261e; padding: 2px 6px; border-radius: 4px; font-weight: 600; }
+.card { background: #fff; border: 1px solid #e5e5e5; border-radius: 8px; padding: 16px; margin-bottom: 16px; }
+.err { color: #b3261e; background: #fbe9e7; padding: 2px 6px; border-radius: 4px; }
+th { font-weight: 600; color: #555; font-size: 12px; text-transform: uppercase; letter-spacing: 0.04em; }
+header.bar .badge { margin-left: auto; font-size: 12px; color: #666; }
+code { font-size: 12px; background: #f4f4f4; padding: 1px 4px; border-radius: 3px; }
+</style></head><body>
+<header class="bar">
+  <h1>Physics &amp; Astronomy Research Support (ISCO-08 2111) — Operator Console</h1>
+  <span class="badge">read-only sample · governor-gated · every proposal is for research review only, never a finalized/actuated claim</span>
+</header>
+<main>
+  <section class="card">
+    <h2>Registered projects</h2>
+    <p class="muted">Demo snapshot — build-time-generated from <code>physics.store</code> via <code>physics.render-html</code> (<code>clojure -M:render-html</code>), regenerated nightly.</p>
+    <table>
+      <thead><tr><th>Project</th><th>Title</th><th>Records committed</th><th>Last op status</th></tr></thead>
+      <tbody>
+        <tr><td>proj-1</td><td>Galaxy Formation Study</td><td>5</td><td><span class="ok">committed</span></td></tr>
+        <tr><td>proj-2</td><td>Exoplanet Atmospheres Survey</td><td>1</td><td><span class="ok">committed</span></td></tr>
+      </tbody>
+    </table>
+  </section>
+  <section class="card">
+    <h2>Action gate (Research Governor)</h2>
+    <p class="muted">HARD holds cannot be overridden. Manuscript drafts claiming finalization are always hard-rejected; novel-result and anomaly-flag claims always escalate to a human.</p>
+    <table>
+      <thead><tr><th>Op</th><th>Gate</th></tr></thead>
+      <tbody>
+        <tr><td><code>:analyze-dataset</code></td><td><span class="ok">auto-commit when the dataset is registered</span></td></tr>
+        <tr><td><code>:draft-manuscript</code></td><td><span class="ok">auto-commit UNLESS finalized (HARD hold) or novel (escalate)</span></td></tr>
+        <tr><td><code>:flag-anomalous-result</code></td><td><span class="warn">ALWAYS human approval &middot; scientific-integrity safeguard</span></td></tr>
+        <tr><td><code>:request-instrument-time</code></td><td><span class="ok">auto-commit when the project is registered</span></td></tr>
+        <tr><td><code>:calibrate-instrument</code></td><td><span class="ok">auto-commit when the project is registered</span></td></tr>
+      </tbody>
+    </table>
+  </section>
+  <section class="card">
+    <h2>Audit trail (this run)</h2>
+    <p class="muted">Every request this scenario drove through the real compiled graph, in order — thread-id, project, op, the request's own dataset (if any), and the real disposition (auto-commit, approved-after-escalation, or the specific HARD-hold rule).</p>
+    <table>
+      <thead><tr><th>Thread</th><th>Project</th><th>Op</th><th>Dataset</th><th>Disposition</th></tr></thead>
+      <tbody>
+        <tr><td><code>p1-analyze-clean</code></td><td>proj-1</td><td><code>analyze-dataset</code></td><td>ds-1</td><td><span class="ok">committed</span></td></tr>
+        <tr><td><code>p1-analyze-no-dataset</code></td><td>proj-1</td><td><code>analyze-dataset</code></td><td>ds-ghost</td><td><span class="critical">HARD hold &middot; no-dataset</span></td></tr>
+        <tr><td><code>p1-finalized-claim</code></td><td>proj-1</td><td><code>draft-manuscript</code></td><td></td><td><span class="critical">HARD hold &middot; no-finalized-claims</span></td></tr>
+        <tr><td><code>p1-novel-claim</code></td><td>proj-1</td><td><code>draft-manuscript</code></td><td></td><td><span class="ok">approved &amp; committed</span></td></tr>
+        <tr><td><code>p1-draft-clean</code></td><td>proj-1</td><td><code>draft-manuscript</code></td><td></td><td><span class="ok">committed</span></td></tr>
+        <tr><td><code>p1-flag-anomaly</code></td><td>proj-1</td><td><code>flag-anomalous-result</code></td><td></td><td><span class="ok">approved &amp; committed</span></td></tr>
+        <tr><td><code>p1-instrument-time</code></td><td>proj-1</td><td><code>request-instrument-time</code></td><td></td><td><span class="ok">committed</span></td></tr>
+        <tr><td><code>ghost-no-project</code></td><td>proj-ghost</td><td><code>analyze-dataset</code></td><td>ds-1</td><td><span class="critical">HARD hold &middot; no-project</span></td></tr>
+        <tr><td><code>p2-calibrate-clean</code></td><td>proj-2</td><td><code>calibrate-instrument</code></td><td></td><td><span class="ok">committed</span></td></tr>
+      </tbody>
+    </table>
+  </section>
+</main>
+</body></html>

@@ -15,7 +15,15 @@
      :effect :propose        ; the advisor NEVER emits a raw store write
      :stake :low|:medium|:high
      :confidence 0.0-1.0
-     :rationale str}
+     :rationale str
+     :finalized? bool        ; optional, :draft-manuscript only — carried
+                              ; through from the request when the requester
+                              ; declares the draft finalized; the governor's
+                              ; no-finalized-claims hard rule reads this
+     :novel? bool}           ; optional, :draft-manuscript only — carried
+                              ; through from the request when the requester
+                              ; declares the draft a novel-result claim; the
+                              ; governor's escalation rule reads this
   LLM parse failures always yield `:confidence 0.0` (never fabricate
   confidence), which forces the governor to escalate/hold."
   (:require [clojure.string :as str]))
@@ -26,13 +34,21 @@
 (defn- infer
   "Deterministic mock inference: reads the request's declared op/stake
   straight through (a stand-in for what an LLM would extract from free
-  text), with a stake-derived confidence."
-  [_store {:keys [op stake] :as request}]
-  {:op op
-   :effect :propose
-   :stake (or stake :low)
-   :confidence (case (or stake :low) :high 0.7 :medium 0.85 :low 0.95)
-   :rationale (str "proposed " (name op) " for project " (:project-id request))})
+  text), with a stake-derived confidence. Also carries through the
+  request's declared `:finalized?`/`:novel?` claim flags when present —
+  these are downstream `physics.governor` hard/escalation triggers on
+  `:draft-manuscript` proposals, so a mock advisor that silently dropped
+  them (instead of reflecting what the request actually declared) would
+  make those governor rules unreachable via the actor pipeline even
+  though `physics.governor/check` itself implements them correctly."
+  [_store {:keys [op stake finalized? novel?] :as request}]
+  (cond-> {:op op
+           :effect :propose
+           :stake (or stake :low)
+           :confidence (case (or stake :low) :high 0.7 :medium 0.85 :low 0.95)
+           :rationale (str "proposed " (name op) " for project " (:project-id request))}
+    (some? finalized?) (assoc :finalized? finalized?)
+    (some? novel?) (assoc :novel? novel?)))
 
 (defn mock-advisor []
   (reify Advisor

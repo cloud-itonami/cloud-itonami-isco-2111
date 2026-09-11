@@ -83,7 +83,7 @@ Proposal operations (advisor-only, all `:effect :propose`):
 - `:calibrate-instrument` — propose a calibration procedure run.
 
 ```bash
-clojure -M:test
+kbb -M:test
 ```
 
 This is what backs this repo's `:maturity :implemented` entry in

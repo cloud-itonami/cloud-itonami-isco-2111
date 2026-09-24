@@ -1,0 +1,35 @@
+;; What this vertical's robot physically does, declared for
+;; kotoba.robotics.process (kotoba-lang/robotics). `kbb -M:physics` runs it.
+;;
+;; README "Robotics premise": a research advisor proposes analysis pipelines,
+;; manuscripts and instrument scheduling for physicists and astronomers (ISCO
+;; 2111). The physical work in such a lab is instrument handling: carrying a
+;; copper sample puck from the liquid-nitrogen dewar to the cryostat load-lock
+;; before it warms, and moving the filled dewar on its trolley.
+;;
+;; Every number without a cited source is marked `estimate` in its :basis.
+;; Replacing an estimate with a sourced value is this bot's growth work.
+{:physics/schema "itonami.physical-ai.spec.v1"
+ :repo "cloud-itonami/cloud-itonami-isco-2111"
+ :cases
+ [{:id :cryo-sample-transfer
+   :kind :thermal
+   :procedure "robot carries a 6 mm copper sample puck (back face on an insulating holder), pre-cooled in liquid nitrogen, through room air to the cryostat load-lock"
+   :params {:thickness-m 0.006 :conductivity-w-mk 400.0 :density-kg-m3 8960.0 :specific-heat-j-kgk 385.0
+            :t0-c -196.0 :t-hot-c 20.0
+            :t-back-ambient-c 20.0 :h-back-w-m2k 0.0
+            :threshold-c -150.0 :duration-s 1500.0 :nodes 4}
+   ;; h at the exposed face: ~5 still air, 25-40 carried briskly past a fume-hood draft
+   :sweep {:param :h-front-w-m2k :values [5.0 10.0 15.0 25.0 40.0]}
+   :quantity :time-to-threshold-s
+   :limit {:min 120.0 :basis "estimate: two minutes covers lifting the puck out of the dewar, crossing the lab and docking it in the load-lock"}
+   :boundary {:lo 5.0 :hi 80.0}}
+  {:id :dewar-trolley-stop
+   :kind :transport
+   :procedure "robot pushes a filled liquid-nitrogen dewar on its trolley to the cryostat and stops"
+   :params {:mass-kg 25.0 :payload-kg 45.0 :distance-m 30.0 :v-max-mps 0.6 :a-max-mps2 0.3
+            :drive-force-n 120.0 :crr 0.02 :cog-height-m 0.70 :support-half-length-m 0.25}
+   :sweep {:param :brake-decel-mps2 :values [0.5 1.0 1.5 2.0 3.0]}
+   :quantity :min-tipover-margin
+   :limit {:min 0.3 :basis "estimate: keep 30 % of the static tip-over moment in reserve, a cryogen spill being the failure"}
+   :boundary {:lo 0.3 :hi 4.0}}]}
